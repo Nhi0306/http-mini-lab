@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HTTP Mini Lab</title>
+</head>
+<body>
+  <h1>HTTP Mini Lab</h1>
+  <input id="message" placeholder="Nhập thông điệp">
+  <button onclick="sendMessage()">Gửi (POST)</button>
+  <button onclick="loadMessages()">Tải (GET)</button>
+  <ul id="list"></ul>
+  <pre id="status"></pre>
+  <script>
+    const statusBox = document.getElementById("status");
+    async function loadMessages() {
+      try {
+        const response = await fetch("/api/messages");
+        if (!response.ok) throw new Error("GET thất bại");
+        const data = await response.json();
+        const list = document.getElementById("list");
+        list.replaceChildren();
+        for (const item of data) {
+          const li = document.createElement("li");
+          li.textContent = item.message;
+          list.appendChild(li);
+        }
+        statusBox.textContent = `GET → HTTP ${response.status}`;
+      } catch (error) { statusBox.textContent = error.message; }
+    }
+    async function sendMessage() {
+      const input = document.getElementById("message");
+      try {
+        const response = await fetch("/api/messages", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: input.value })
+        });
+        const data = await response.json();
+        statusBox.textContent = `POST → HTTP ${response.status}`;
+        if (!response.ok) { alert(data.error); return; }
+        input.value = "";
+        await loadMessages();
+      } catch (error) { statusBox.textContent = error.message; }
+    }
+    loadMessages();
+  </script>
+</body>
+</html>
